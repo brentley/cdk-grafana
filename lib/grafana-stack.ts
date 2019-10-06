@@ -8,20 +8,15 @@ import { AwsLogDriver } from '@aws-cdk/aws-ecs';
 import { ApplicationTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 import { HealthCheck } from '@aws-cdk/aws-autoscaling';
 
-
-
 export class GrafanaStack extends cdk.Stack {
 //  public readonly vpc: IVpc
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-
 // change the below values to fit your environment
     const dbpassword = "CHANGEME";
-
     const vpcid = "vpc-0725094f3a85b23ec";
     const sgip = "192.168.0.0/16";
-
 // end of customization
 
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
