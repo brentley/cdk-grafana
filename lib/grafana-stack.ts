@@ -4,6 +4,7 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
 import { Vpc, IVpc, SubnetType } from '@aws-cdk/aws-ec2';
 import ecs_patterns = require("@aws-cdk/aws-ecs-patterns");
+import { AwsLogDriver } from '@aws-cdk/aws-ecs';
 
 
 
@@ -17,7 +18,7 @@ export class GrafanaStack extends cdk.Stack {
     const dbpassword = "CHANGEME";
 
     const vpcid = "vpc-0725094f3a85b23ec";
-    const sgip = "10.0.0.0/8";
+    const sgip = "192.168.0.0/16";
 
 // end of customization
 
@@ -28,13 +29,6 @@ export class GrafanaStack extends cdk.Stack {
     const privatesubnets = vpc.selectSubnets({
          subnetType: SubnetType.PRIVATE
     })
-
-//    this.vpc = Vpc.fromVpcAttributes(this, "Vpc", {
-//        vpcId: vpcid,
-//        availabilityZones: availabilityzones,
-//        privateSubnetIds: privatesubnets,
-//        publicSubnetIds: publicsubnets
-//    })
 
     const rdsdbsubnets = new rds.CfnDBSubnetGroup(this, 'rdsdbsubnets', {
         dbSubnetGroupDescription: "grafana rds db subnet group",
@@ -90,12 +84,15 @@ export class GrafanaStack extends cdk.Stack {
         memoryLimitMiB: 512,
     });
 
+    const logging: ecs.LogDriver = new ecs.AwsLogDriver({ streamPrefix: this.node.id });
+
     const container = taskdef.addContainer("grafana", {
         image: ecs.ContainerImage.fromRegistry("grafana/grafana"),
+        logging,
         environment: {
             TEST_ENVIRONMENT_VARIABLE: "test-value",
             GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource",
-            GF_DATABASE_TYPE: rdsdb.engine,
+            GF_DATABASE_TYPE: "mysql",
             GF_DATABASE_PASSWORD: String(rdsdb.masterUserPassword),
             GF_DATABASE_USER: String(rdsdb.masterUsername),
             GF_DATABASE_HOST: rdsdb.attrEndpointAddress,
