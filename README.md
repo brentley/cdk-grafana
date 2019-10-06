@@ -1,3 +1,10 @@
+# Initialize Database:
+```
+mysql -u admin -p -h grafana-db.cluster-endpoint.us-east-1.rds.amazonaws.com
+
+create database grafana;
+```
+
 # Useful commands
 
  * `npm run build`   compile typescript to js

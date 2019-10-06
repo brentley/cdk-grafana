@@ -5,6 +5,8 @@ import ecs = require('@aws-cdk/aws-ecs');
 import { Vpc, IVpc, SubnetType } from '@aws-cdk/aws-ec2';
 import ecs_patterns = require("@aws-cdk/aws-ecs-patterns");
 import { AwsLogDriver } from '@aws-cdk/aws-ecs';
+import { ApplicationTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
+import { HealthCheck } from '@aws-cdk/aws-autoscaling';
 
 
 
@@ -105,12 +107,16 @@ export class GrafanaStack extends cdk.Stack {
         containerPort: 3000
     })
 
-    new ecs_patterns.ApplicationLoadBalancedFargateService(this, "grafanaservice", {
+    const service = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "grafanaservice", {
         cluster: cluster,
         taskDefinition: taskdef,
         serviceName: 'grafana',
-        publicLoadBalancer: true
+        publicLoadBalancer: true,
     });
+
+    service.targetGroup.configureHealthCheck({
+            path: "/login"
+        })
 
   }
 }
