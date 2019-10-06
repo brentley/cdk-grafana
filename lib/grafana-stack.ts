@@ -2,11 +2,8 @@ import cdk = require('@aws-cdk/core');
 import rds = require('@aws-cdk/aws-rds');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
-import { Vpc, IVpc, SubnetType } from '@aws-cdk/aws-ec2';
+import { SubnetType } from '@aws-cdk/aws-ec2';
 import ecs_patterns = require("@aws-cdk/aws-ecs-patterns");
-import { AwsLogDriver } from '@aws-cdk/aws-ecs';
-import { ApplicationTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
-import { HealthCheck } from '@aws-cdk/aws-autoscaling';
 
 export class GrafanaStack extends cdk.Stack {
 //  public readonly vpc: IVpc
@@ -19,20 +16,13 @@ export class GrafanaStack extends cdk.Stack {
     const sgip = "192.168.0.0/16";
 // end of customization
 
-    const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-        vpcId: vpcid
-    });
-
-    const privatesubnets = vpc.selectSubnets({
-         subnetType: SubnetType.PRIVATE
-    })
-
+    const vpc = ec2.Vpc.fromLookup(this, 'vpc', { vpcId: vpcid });
+    const privatesubnets = vpc.selectSubnets({ subnetType: SubnetType.PRIVATE })
     const rdsdbsubnets = new rds.CfnDBSubnetGroup(this, 'rdsdbsubnets', {
         dbSubnetGroupDescription: "grafana rds db subnet group",
         dbSubnetGroupName: "grafana-db-subnet-group",
         subnetIds: privatesubnets.subnetIds
     });
-
     const dbsecuritygroup = new ec2.CfnSecurityGroup(this, 'dbsecuritygroup', {
         groupDescription: "grafana db security group",
         groupName: "grafana-db-sg",
@@ -52,12 +42,10 @@ export class GrafanaStack extends cdk.Stack {
             }
         ]
     });
-
     const rdsdb = new rds.CfnDBCluster(this, 'rdsdb', {
         availabilityZones: vpc.availabilityZones,
         backupRetentionPeriod: 7,
         dbClusterIdentifier: "grafana-db",
-        // dbSubnetGroupName: "grafana-db-subnet-group",
         dbSubnetGroupName: rdsdbsubnets.dbSubnetGroupName,
         engine: "aurora",
         port: 3306,
@@ -68,21 +56,15 @@ export class GrafanaStack extends cdk.Stack {
         ],
         storageEncrypted: true,
         engineMode: "serverless",
+        scalingConfiguration: {
+            autoPause: true,
+            minCapacity: 1
+        },
         deletionProtection: false
     });
-
-    const cluster = new ecs.Cluster(this, 'grafanacluster', {
-        vpc: vpc,
-        clusterName: 'grafana'
-    });
-
-    const taskdef = new ecs.FargateTaskDefinition(this, 'taskdef', {
-        cpu: 256,
-        memoryLimitMiB: 512,
-    });
-
+    const cluster = new ecs.Cluster(this, 'grafanacluster', { vpc: vpc, clusterName: 'grafana' });
+    const taskdef = new ecs.FargateTaskDefinition(this, 'taskdef', { cpu: 256, memoryLimitMiB: 512, });
     const logging: ecs.LogDriver = new ecs.AwsLogDriver({ streamPrefix: this.node.id });
-
     const container = taskdef.addContainer("grafana", {
         image: ecs.ContainerImage.fromRegistry("grafana/grafana"),
         logging,
@@ -97,21 +79,13 @@ export class GrafanaStack extends cdk.Stack {
             GF_AWS_default_REGION: this.region
         }
     });
-
-    container.addPortMappings({
-        containerPort: 3000
-    })
-
+    container.addPortMappings({ containerPort: 3000 })
     const service = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "grafanaservice", {
         cluster: cluster,
         taskDefinition: taskdef,
         serviceName: 'grafana',
         publicLoadBalancer: true,
     });
-
-    service.targetGroup.configureHealthCheck({
-            path: "/login"
-        })
-
+    service.targetGroup.configureHealthCheck({ path: "/login" })
   }
 }
