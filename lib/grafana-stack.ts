@@ -75,6 +75,7 @@ export class GrafanaStack extends cdk.Stack {
             GF_DATABASE_PASSWORD: String(rdsdb.masterUserPassword),
             GF_DATABASE_USER: String(rdsdb.masterUsername),
             GF_DATABASE_HOST: rdsdb.attrEndpointAddress,
+            GF_AUTH_ANONYMOUS_ENABLED: "true",
             GF_SECURITY_ADMIN_PASSWORD: dbpassword,
             GF_AWS_default_REGION: this.region
         }
