@@ -21,7 +21,7 @@ export class GrafanaStack extends cdk.Stack {
     const rdsdbsubnets = new rds.CfnDBSubnetGroup(this, 'rdsdbsubnets', {
         dbSubnetGroupDescription: "grafana rds db subnet group",
         dbSubnetGroupName: "grafana-db-subnet-group",
-        subnetIds: privatesubnets.subnetIds
+        subnetIds: privatesubnets.subnetIds.slice(0,3)
     });
     const dbsecuritygroup = new ec2.CfnSecurityGroup(this, 'dbsecuritygroup', {
         groupDescription: "grafana db security group",
