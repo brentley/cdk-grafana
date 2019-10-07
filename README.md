@@ -3,6 +3,8 @@
 customize lines 7-8 of bin/grafana.ts
 customize lines 19-23 of lib/grafana-stack.ts
 
+npm install
+(customize variables)
 npm run build
 cdk synth
 cdk deploy
