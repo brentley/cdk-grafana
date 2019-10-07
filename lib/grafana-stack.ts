@@ -2,6 +2,7 @@ import cdk = require('@aws-cdk/core');
 import rds = require('@aws-cdk/aws-rds');
 import ec2 = require('@aws-cdk/aws-ec2');
 import ecs = require('@aws-cdk/aws-ecs');
+import iam = require('@aws-cdk/aws-iam');
 import { SubnetType } from '@aws-cdk/aws-ec2';
 import ecs_patterns = require("@aws-cdk/aws-ecs-patterns");
 
@@ -80,6 +81,9 @@ export class GrafanaStack extends cdk.Stack {
             GF_AWS_default_REGION: this.region
         }
     });
+    container.taskDefinition.taskRole.addManagedPolicy(
+        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess')
+    );
     container.addPortMappings({ containerPort: 3000 })
     const service = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "grafanaservice", {
         cluster: cluster,
