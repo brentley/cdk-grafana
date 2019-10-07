@@ -43,7 +43,7 @@ export class GrafanaStack extends cdk.Stack {
         ]
     });
     const rdsdb = new rds.CfnDBCluster(this, 'rdsdb', {
-        availabilityZones: vpc.availabilityZones.slice(0,3),
+        availabilityZones: vpc.availabilityZones.slice(0,3), // rds is limited to 3 azs
         backupRetentionPeriod: 7,
         dbClusterIdentifier: "grafana-db",
         dbSubnetGroupName: rdsdbsubnets.dbSubnetGroupName,
