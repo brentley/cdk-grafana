@@ -82,7 +82,7 @@ export class GrafanaStack extends cdk.Stack {
         }
     });
     container.taskDefinition.taskRole.addManagedPolicy(
-        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess')
+        iam.ManagedPolicy.fromAwsManagedPolicyName('ReadOnlyAccess')
     );
     container.addPortMappings({ containerPort: 3000 })
     const service = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "grafanaservice", {
