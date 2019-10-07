@@ -21,7 +21,7 @@ export class GrafanaStack extends cdk.Stack {
     const rdsdbsubnets = new rds.CfnDBSubnetGroup(this, 'rdsdbsubnets', {
         dbSubnetGroupDescription: "grafana rds db subnet group",
         dbSubnetGroupName: "grafana-db-subnet-group",
-        subnetIds: privatesubnets.subnetIds.slice(0,3)
+        subnetIds: privatesubnets.subnetIds
     });
     const dbsecuritygroup = new ec2.CfnSecurityGroup(this, 'dbsecuritygroup', {
         groupDescription: "grafana db security group",
@@ -43,7 +43,7 @@ export class GrafanaStack extends cdk.Stack {
         ]
     });
     const rdsdb = new rds.CfnDBCluster(this, 'rdsdb', {
-        availabilityZones: vpc.availabilityZones,
+        availabilityZones: vpc.availabilityZones.slice(0,3),
         backupRetentionPeriod: 7,
         dbClusterIdentifier: "grafana-db",
         dbSubnetGroupName: rdsdbsubnets.dbSubnetGroupName,
